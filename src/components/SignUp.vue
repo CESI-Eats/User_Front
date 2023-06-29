@@ -57,8 +57,8 @@
 </template>
 
 <script>
-import { identityAxios, bffAxios } from "@/services/axios";
-import { store } from "@/services/store";
+import {identityAxios, bffAxios} from "@/services/axios";
+import {store} from "@/services/store";
 
 function createAccount() {
   store.commit('showSnackbarinfo', {
@@ -117,9 +117,7 @@ export default {
         message: 'Creating identity...',
         color: 'info',
       });
-
-      identityAxios
-          .post('/register', this.credentials)
+      identityAxios.post('/register', this.credentials)
           .then((response) => {
             console.log(response);
             store.commit('showSnackbarinfo', {
@@ -137,7 +135,7 @@ export default {
           });
     },
     login() {
-      const { mail, password } = this.credentials;
+      const {mail, password} = this.credentials;
       store.commit('showSnackbarinfo', {
         message: 'Connecting...',
         color: 'info',
@@ -147,6 +145,9 @@ export default {
         password: password,
       })
           .then((response) => {
+            store.state.socket.connect();
+            store.state.socket.emit('setClientId',response.data.token);
+
             store.commit('setToken', response.data.token);
             store.commit('setRefreshToken', response.data.refreshToken);
             store.commit('showSnackbarinfo', {
@@ -154,8 +155,8 @@ export default {
               color: 'success',
             });
             this.createAccount();
-            this.socket.connect();
-            this.socket.emit('setClientId', response.data.token);
+            //this.socket.connect()
+            //this.socket.emit('setClientId', response.data.token);
           })
           .catch((error) => {
             console.log(error);

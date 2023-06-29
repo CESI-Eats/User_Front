@@ -17,8 +17,8 @@
           </v-col>
         </v-row>
         <v-card-actions class="justify-center">
-          <v-btn color="secondary" @click="addToCart(menu)">Add to cart</v-btn>
-          <v-btn color="error" :to="`/catalogs/${id}`">Back</v-btn>
+          <v-btn color="secondary" @click="addToCart(menu.restorerId, menu.id, menu.amount)">Add to cart</v-btn>
+          <v-btn color="error" :to="`/catalogs/${this.$route.params.catalogId}`">Back</v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
@@ -32,9 +32,9 @@ import {store} from "@/services/store";
 export default {
   data() {
     return {
-      id: '',
       menu: {
         id: '',
+        restorerId:'',
         image: '',
         name: '',
         description: '',
@@ -62,7 +62,7 @@ export default {
         message: 'Recovering menu...',
         color: 'info',
       });
-      bffAxios.get(`/catalogs/${this.params.catalogId}/menus/${this.params.menuId}`)
+      bffAxios.get(`/catalogs/${this.$route.params.catalogId}/menus/${this.$route.params.menuId}`)
           .then(response => {
             this.menu = response.data;
             this.isMenuLoaded = true;
@@ -79,12 +79,19 @@ export default {
             });
           });
     },
-    addToCart(menu) {
+    addToCart(restorerId, id, amount) {
       store.commit('showSnackbarinfo', {
         message: 'Update Cart...',
         color: 'info',
       });
-      bffAxios.put('/addtomycart', {menu: {id: menu.id, amount: menu.amount}})
+
+      const menuData = {
+        restorerId: restorerId,
+        id: id,
+        amount: amount
+      };
+      console.log(menuData)
+      bffAxios.put('/addtomycart', {menu: menuData})
           .then(() => {
             store.commit('showSnackbarinfo', {
               message: 'Cart updated',
@@ -92,13 +99,13 @@ export default {
             });
           })
           .catch(error => {
-            console.error(error);
+            console.error(error.message);
             store.commit('showSnackbarinfo', {
               message: 'Update failed',
               color: 'error',
             });
           });
     }
-  },
+  }
 };
 </script>

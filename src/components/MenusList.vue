@@ -24,8 +24,8 @@
                 <span v-for="article in menu.articles" :key="article.id">{{ article.name }}<br/></span>
               </v-card-text>
               <v-card-actions class="justify-center">
-                <v-btn color="primary" :to="`/catalogs/${this.catalogId}/menus/${menu.id}`">View menu</v-btn>
-                <v-btn color="secondary" @click="addToCart(menu)">Add to cart</v-btn>
+                <v-btn color="primary" :to="`/catalogs/${this.$route.params.catalogId}/menus/${menu.id}`">View menu</v-btn>
+                <v-btn color="secondary" @click="addToCart(catalog.restorerId, menu.id, menu.amount)">Add to cart</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -47,6 +47,7 @@ export default {
     return {
       catalog: {
         id: '',
+        restorerId:'',
         image: '',
         name: '',
         description: '',
@@ -61,12 +62,12 @@ export default {
               {
                 id: '',
                 name: '',
-              }
-            ]
-          }
+              },
+            ],
+          },
         ],
       },
-      isCatalogLoaded: false
+      isCatalogLoaded: false,
     };
   },
   mounted() {
@@ -79,8 +80,10 @@ export default {
         message: 'Recovering menus...',
         color: 'info',
       });
-      bffAxios.get(`/catalogs/${this.param.catalogId}`)
-          .then(response => {
+
+      bffAxios
+          .get(`/catalogs/${this.$route.params.catalogId}`)
+          .then((response) => {
             this.catalog = response.data;
             this.isCatalogLoaded = true;
             store.commit('showSnackbarinfo', {
@@ -88,7 +91,7 @@ export default {
               color: 'success',
             });
           })
-          .catch(error => {
+          .catch((error) => {
             console.error(error);
             store.commit('showSnackbarinfo', {
               message: 'Error while recovering menus',
@@ -96,12 +99,19 @@ export default {
             });
           });
     },
-    addToCart(menu) {
+    addToCart(restorerId, id, amount) {
       store.commit('showSnackbarinfo', {
         message: 'Update Cart...',
         color: 'info',
       });
-      bffAxios.put('/addtomycart', {menu: {id: menu.id, amount: menu.amount}})
+      const menuData = {
+        restorerId: restorerId,
+        id: id,
+        amount: amount
+      };
+      console.log(menuData)
+
+      bffAxios.put('/addtomycart', {menu: menuData})
           .then(() => {
             store.commit('showSnackbarinfo', {
               message: 'Cart updated',
@@ -109,7 +119,7 @@ export default {
             });
           })
           .catch(error => {
-            console.error(error);
+            console.error(error.message);
             store.commit('showSnackbarinfo', {
               message: 'Update failed',
               color: 'error',
